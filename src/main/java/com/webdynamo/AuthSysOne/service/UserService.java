@@ -2,6 +2,7 @@ package com.webdynamo.AuthSysOne.service;
 
 import com.webdynamo.AuthSysOne.model.Users;
 import com.webdynamo.AuthSysOne.repository.UserRepo;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 /**
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 public class UserService {
 
     private final UserRepo userRepo;
+    private final PasswordEncoder passwordEncoder;
 
     /**
      * Constructor Injection: Spring automatically injects the UserRepo bean into this constructor.
@@ -21,8 +23,9 @@ public class UserService {
      *
      * @param userRepo The repository for user data access.
      */
-    public UserService(UserRepo userRepo) {
+    public UserService(UserRepo userRepo, PasswordEncoder passwordEncoder) {
         this.userRepo = userRepo;
+        this.passwordEncoder = passwordEncoder;
     }
 
     // REGISTER
@@ -44,7 +47,12 @@ public class UserService {
         // Create a new User entity
         Users user = new Users();
         user.setUsername(username);
-        user.setPassword(password); // Note: In a real app, passwords should be hashed before saving!
+
+        // HASHING
+        // We use the passwordEncoder to hash the raw password before saving it.
+        // This ensures that we never store plain-text passwords in the database.
+        String hashedPassword = passwordEncoder.encode(password);
+        user.setPassword(hashedPassword);
 
         // Save the user to the database
         return userRepo.save(user);
@@ -55,17 +63,18 @@ public class UserService {
      * Authenticates a user with the given username and password.
      *
      * @param username The username provided by the user.
-     * @param password The password provided by the user.
+     * @param rawPassword The password provided by the user.
      * @return true if authentication is successful, false otherwise.
      * @throws RuntimeException if the username is not found.
      */
-    public boolean login(String username, String password) {
+    public boolean login(String username, String rawPassword) {
         // Find the user by username, or throw an exception if not found
         Users user = userRepo.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Username not found"));
 
-        // Check if the provided password matches the stored password
-        // Note: In a real app, you would compare hashed passwords.
-        return user.getPassword().equals(password);
+        // Check if the provided password matches the stored hashed password.
+        // The matches() method automatically handles the hashing of the raw password
+        // and compares it with the stored hash.
+        return passwordEncoder.matches(rawPassword, user.getPassword());
     }
 }

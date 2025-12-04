@@ -44,13 +44,14 @@ public class AuthController {
     }
 
     /**
-     * Handles HTTP GET requests to "/auth/login".
+     * Handles HTTP POST requests to "/auth/login".
+     * This endpoint is used to authenticate an existing user.
      *
      * @PostMapping("/login"): Maps POST requests to the login method.
      * @RequestBody: Maps the HTTP request body to the Users object.
      *
-     * @param users The user credentials sent in the request body.
-     * @return A success or failure message.
+     * @param users The user credentials (username and password) sent in the request body.
+     * @return A success or failure message based on the authentication result.
      */
     @PostMapping("/login")
     public String login(@RequestBody Users users) {
