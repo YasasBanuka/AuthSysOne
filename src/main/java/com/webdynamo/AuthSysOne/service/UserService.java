@@ -57,24 +57,4 @@ public class UserService {
         // Save the user to the database
         return userRepo.save(user);
     }
-
-    // LOGIN
-    /**
-     * Authenticates a user with the given username and password.
-     *
-     * @param username The username provided by the user.
-     * @param rawPassword The password provided by the user.
-     * @return true if authentication is successful, false otherwise.
-     * @throws RuntimeException if the username is not found.
-     */
-    public boolean login(String username, String rawPassword) {
-        // Find the user by username, or throw an exception if not found
-        Users user = userRepo.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("Username not found"));
-
-        // Check if the provided password matches the stored hashed password.
-        // The matches() method automatically handles the hashing of the raw password
-        // and compares it with the stored hash.
-        return passwordEncoder.matches(rawPassword, user.getPassword());
-    }
 }
